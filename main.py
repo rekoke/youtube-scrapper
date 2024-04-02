@@ -9,7 +9,7 @@ from youtube_scrapper import YoutubeScrappedVideo, YoutubeScrapeResult
 logger = logging.getLogger(__name__)
 
 
-class YoutubeScraping():
+class YoutubeScraping:
 
     def findkeys(self, node, kv):
         if isinstance(node, list):
@@ -34,21 +34,23 @@ class YoutubeScraping():
         data = json.loads(scripts[13].string[20:-1])
 
         scraped_results: list[YoutubeScrappedVideo] = []
-        video_renderer_list = list(self.findkeys(data, 'videoRenderer'))
+        video_renderer_list = list(self.findkeys(data, "videoRenderer"))
 
         try:
             for video in video_renderer_list:
-                myvid = video
-                print(myvid)
-                scraped_results.append(YoutubeScrapeResult(**video).to_youtube_scrapping_result())
+                scraped_results.append(
+                    YoutubeScrapeResult(**video).to_youtube_scrapping_result()
+                )
             return scraped_results
 
         except ValidationError as e:
-            logger.error(f"Unable to parse Pydantic models from Youtube response.\n\n{e}")
+            logger.error(
+                f"Unable to parse Pydantic models\
+                from Youtube response.\n\n{e}"
+            )
 
     def run_interaction(self, search_term: str):
         return self.getYoutubeScrapeResults(search_term)
 
 
-sc = YoutubeScraping().run_interaction('trump')
-print(sc)
+sc = YoutubeScraping().run_interaction("trump")

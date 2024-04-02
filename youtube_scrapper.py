@@ -46,5 +46,9 @@ class YoutubeScrapeResult(BaseModel):
             published_time=self.publishedTimeText.simpleText,
             view_count=self.viewCountText.simpleText,
             channel_name=self.ownerText.runs[0].text,
-            description=self.detailedMetadataSnippets[0].snippetText.runs[0].text if self.detailedMetadataSnippets else None,
+            description=(
+                self.detailedMetadataSnippets[0].snippetText.runs[0].text
+                if self.detailedMetadataSnippets
+                else None
+            ),
         )
