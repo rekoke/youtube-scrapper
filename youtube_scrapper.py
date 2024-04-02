@@ -1,4 +1,5 @@
-from typing import Optional
+import re
+from typing import Optional, List
 from pydantic import BaseModel
 
 
@@ -27,28 +28,34 @@ class YoutubeViewCountText(BaseModel):
     simpleText: str
 
 
-class YoutubedetailedMetadataSnippetItem(BaseModel):
+class YoutubedetailedMetaSnippetItem(BaseModel):
     snippetText: YoutubeRuns
 
 
 class YoutubeScrapeResult(BaseModel):
     videoId: str
     title: YoutubeRuns
-    publishedTimeText: YoutubePublishedTimeText
-    viewCountText: YoutubeViewCountText
+    publishedTimeText: Optional[YoutubePublishedTimeText] = None
+    viewCountText: Optional[YoutubeViewCountText] = None
     ownerText: YoutubeRuns
-    detailedMetadataSnippets: Optional[list[YoutubedetailedMetadataSnippetItem]] = None
+    detailedMetaSnippets: Optional[list[YoutubedetailedMetaSnippetItem]] = None
 
     def to_youtube_scrapping_result(self) -> YoutubeScrappedVideo:
         return YoutubeScrappedVideo(
             id=self.videoId,
             title=self.title.runs[0].text,
             published_time=self.publishedTimeText.simpleText,
-            view_count=self.viewCountText.simpleText,
+            view_count=re.findall(
+                "\d+", self.viewCountText.simpleText.replace(".", "")
+            )[0],
             channel_name=self.ownerText.runs[0].text,
             description=(
-                self.detailedMetadataSnippets[0].snippetText.runs[0].text
-                if self.detailedMetadataSnippets
+                self.detailedMetaSnippets[0].snippetText.runs[0].text
+                if self.detailedMetaSnippets
                 else None
             ),
         )
+
+
+class ScrappingResultList(BaseModel):
+    videos: List[YoutubeScrappedVideo]

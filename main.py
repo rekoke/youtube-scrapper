@@ -1,12 +1,18 @@
+import pprint
 from bs4 import BeautifulSoup
 from pydantic import ValidationError
 import requests
 import json
 import logging
 
-from youtube_scrapper import YoutubeScrappedVideo, YoutubeScrapeResult
+from youtube_scrapper import (
+    ScrappingResultList,
+    YoutubeScrappedVideo,
+    YoutubeScrapeResult,
+)
 
 logger = logging.getLogger(__name__)
+pp = pprint.PrettyPrinter(indent=4)
 
 
 class YoutubeScraping:
@@ -23,7 +29,7 @@ class YoutubeScraping:
                 for x in self.findkeys(j, kv):
                     yield x
 
-    def getYoutubeScrapeResults(self, search_term: str):
+    def getYoutubeScrapeResults(self, search_term: str, n: int):
         youtube_url = "https://www.youtube.com/results?search_query="
         video_url = youtube_url + search_term
 
@@ -37,7 +43,7 @@ class YoutubeScraping:
         video_renderer_list = list(self.findkeys(data, "videoRenderer"))
 
         try:
-            for video in video_renderer_list:
+            for video in video_renderer_list[:n]:
                 scraped_results.append(
                     YoutubeScrapeResult(**video).to_youtube_scrapping_result()
                 )
@@ -49,8 +55,11 @@ class YoutubeScraping:
                 from Youtube response.\n\n{e}"
             )
 
-    def run_interaction(self, search_term: str):
-        return self.getYoutubeScrapeResults(search_term)
+    def run_interaction(self, search_term: str, n: int) -> ScrappingResultList:
+        scrapped_videos = self.getYoutubeScrapeResults(search_term, n)
+        list_scraped_videos = ScrappingResultList(videos=scrapped_videos)
+        return list_scraped_videos
 
 
-sc = YoutubeScraping().run_interaction("trump")
+sc = YoutubeScraping().run_interaction("trump", 10)
+pp.pprint(sc)
