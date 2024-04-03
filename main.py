@@ -61,5 +61,5 @@ class YoutubeScraping:
         return list_scraped_videos
 
 
-sc = YoutubeScraping().run_interaction("trump", 10)
+sc = YoutubeScraping().run_interaction("trump", 5)
 pp.pprint(sc)
