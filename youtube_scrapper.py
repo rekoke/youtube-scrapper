@@ -8,7 +8,8 @@ from dateutil.relativedelta import relativedelta
 class YoutubeScrappedVideo(BaseModel):
     id: str
     title: str
-    published_time: str
+    published_time_datetime: str
+    published_time_string: str
     view_count: str
     channel_name: str
     description: str | None
@@ -40,21 +41,21 @@ class YoutubeScrapeResult(BaseModel):
     publishedTimeText: Optional[YoutubePublishedTimeText] = None
     viewCountText: Optional[YoutubeViewCountText] = None
     ownerText: YoutubeRuns
-    detailedMetaSnippets: Optional[list[YoutubedetailedMetaSnippetItem]] = None
+    detailedMetadataSnippets: Optional[list[YoutubedetailedMetaSnippetItem]] = None
 
     def to_youtube_scrapping_result(self) -> YoutubeScrappedVideo:
         publishedTimeTextStr = self.publishedTimeText.simpleText
         viewCountStr = self.viewCountText.simpleText
-
         return YoutubeScrappedVideo(
             id=self.videoId,
             title=self.title.runs[0].text,
-            published_time=self.get_past_date(publishedTimeTextStr),
+            published_time_datetime=self.get_past_date(publishedTimeTextStr),
+            published_time_string=publishedTimeTextStr,
             view_count=re.findall(r"\d+", viewCountStr.replace(".", ""))[0],
             channel_name=self.ownerText.runs[0].text,
             description=(
-                self.detailedMetaSnippets[0].snippetText.runs[0].text
-                if self.detailedMetaSnippets
+                self.detailedMetadataSnippets[0].snippetText.runs[0].text
+                if self.detailedMetadataSnippets
                 else None
             ),
         )
