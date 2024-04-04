@@ -31,7 +31,7 @@ class YoutubeViewCountText(BaseModel):
     simpleText: str
 
 
-class YoutubedetailedMetaSnippetItem(BaseModel):
+class YoutubedetailedMetaSnippet(BaseModel):
     snippetText: YoutubeRuns
 
 
@@ -41,7 +41,7 @@ class YoutubeScrapeResult(BaseModel):
     publishedTimeText: Optional[YoutubePublishedTimeText] = None
     viewCountText: Optional[YoutubeViewCountText] = None
     ownerText: YoutubeRuns
-    detailedMetadataSnippets: Optional[list[YoutubedetailedMetaSnippetItem]] = None
+    detailedMetadataSnippets: Optional[list[YoutubedetailedMetaSnippet]] = None
 
     def to_youtube_scrapping_result(self) -> YoutubeScrappedVideo:
         publishedTimeTextStr = self.publishedTimeText.simpleText

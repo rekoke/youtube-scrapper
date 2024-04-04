@@ -29,7 +29,12 @@ class YoutubeScraping:
                 for x in self.findkeys(j, kv):
                     yield x
 
-    def getYoutubeScrapeResults(self, search_term: str, n: int):
+    def getYoutubeScrapeResults(
+            self,
+            search_term: str,
+            n: int
+            ) -> YoutubeScrapeResult:
+
         youtube_url = "https://www.youtube.com/results?search_query="
         video_url = youtube_url + search_term
 
@@ -40,7 +45,11 @@ class YoutubeScraping:
         data = json.loads(scripts[13].string[20:-1])
 
         scraped_results: list[YoutubeScrappedVideo] = []
-        video_renderer_list = list(self.findkeys(data, "videoRenderer"))
+
+        try:
+            video_renderer_list = list(self.findkeys(data, "videoRenderer"))
+        except Exception:
+            logger.error("videoRenderer key not found in the script")
 
         try:
             for video in video_renderer_list[:n]:
