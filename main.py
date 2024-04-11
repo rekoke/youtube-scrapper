@@ -52,7 +52,6 @@ class YoutubeScraping:
                      search_term, lang, country
                     )
 
-        print(video_url)
         try:
             response = requests.get(
                 video_url,
@@ -62,7 +61,10 @@ class YoutubeScraping:
         except OSError as e:
             print(e)
 
-    def getYoutubeScrapeResults(self, search_term: str, country: str, n: int):
+    def getYoutubeScrapeResults(
+        self, search_term: str, country: str, n: int
+    ) -> list[YoutubeScrappedVideo]:
+
         htmlBright = self.get_html(search_term, country)
         bodyBright = htmlBright.find_all("body")[0]
         scriptsBright = bodyBright.find_all("script")
@@ -73,10 +75,6 @@ class YoutubeScraping:
         try:
             video_renderer_list = list(
                 self.findkeys(dataBright, "videoRenderer"))
-        except Exception:
-            logger.error("videoRenderer key not found in the script")
-
-        try:
             for video in video_renderer_list[:n]:
                 scraped_results.append(
                     YoutubeScrapeResult(**video).to_youtube_scrapping_result()
@@ -88,7 +86,8 @@ class YoutubeScraping:
                 f"Unable to parse Pydantic models\
                 from Youtube response.\n\n{e}"
             )
-        return scraped_results
+        except Exception:
+            logger.error("videoRenderer key not found in the script")
 
     def run_interaction(
             self,
