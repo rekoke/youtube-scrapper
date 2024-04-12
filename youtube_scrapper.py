@@ -12,15 +12,43 @@ class YoutubeScrappedVideo(BaseModel):
     published_time_string: str
     view_count: str
     channel_name: str
+    channel_url: str
     description: str | None
+
+
+class YoutubeWebCommandMetadata(BaseModel):
+    url: str | None
+
+
+class YoutubeCommandMetadata(BaseModel):
+    webCommandMetadata: YoutubeWebCommandMetadata
+
+
+class YoutubeBrowseEndpoint(BaseModel):
+    browseId: str
+    canonicalBaseUrl: str
+
+
+class YoutubeNavigationEndpoint(BaseModel):
+    clickTrackingParams: str
+    commandMetadata: YoutubeCommandMetadata
+    browseEndpoint: YoutubeBrowseEndpoint
 
 
 class YoutubeRunsText(BaseModel):
     text: str | None
 
 
+class YoutubeRunsNavigationEndpoint(BaseModel):
+    navigationEndpoint: YoutubeNavigationEndpoint | None
+
+
 class YoutubeRuns(BaseModel):
-    runs: list[YoutubeRunsText] | None
+    runs: list[YoutubeRunsText]
+
+
+class YoutubeLongBylineTextRuns(BaseModel):
+    runs: list[YoutubeRunsNavigationEndpoint]
 
 
 class YoutubePublishedTimeText(BaseModel):
@@ -41,34 +69,52 @@ class YoutubeScrapeResult(BaseModel):
     publishedTimeText: Optional[YoutubePublishedTimeText] = None
     viewCountText: Optional[YoutubeViewCountText] = None
     ownerText: YoutubeRuns
+    longBylineText: YoutubeLongBylineTextRuns
     detailedMetadataSnippets: Optional[list[YoutubedetailedMetaSnippet]] = None
 
     def to_youtube_scrapping_result(self) -> YoutubeScrappedVideo:
-        publishedTimeTextStr = self.publishedTimeText.simpleText
-        viewCountStr = self.viewCountText.simpleText
-        return YoutubeScrappedVideo(
+        final_result = YoutubeScrappedVideo(
             id=self.videoId,
             title=self.title.runs[0].text,
             # published_time_datetime=(
             #     self.get_past_date(publishedTimeTextStr)
             #     if publishedTimeTextStr
             #     else None),
-            published_time_string=publishedTimeTextStr,
-            view_count=(
-                re.findall(r"\d+",
-                           viewCountStr
-                           .replace(".", "")
-                           .replace(",", ""))[0]
-                if viewCountStr
+            published_time_string=(
+                self.publishedTimeText.simpleText
+                if self.publishedTimeText
                 else None
             ),
-            channel_name=self.ownerText.runs[0].text,
+            # view_count=(
+            #     re.findall(r"\d+", viewCountStr.replace(".", "").replace(",", ""))[0]
+            #     if viewCountStr
+            #     else None
+            # ),
+            view_count=(
+                self.viewCountText.simpleText
+                if self.viewCountText
+                else None
+            ),
+            channel_name=(
+                self.ownerText.runs[0].text
+                if self.ownerText
+                else None
+            ),
+            channel_url=(
+                self.longBylineText.runs[0]
+                .navigationEndpoint.commandMetadata
+                .webCommandMetadata.url
+                if self.longBylineText
+                else None
+                ),
             description=(
-                self.detailedMetadataSnippets[0].snippetText.runs[0].text
+                self.detailedMetadataSnippets[0]
+                .snippetText.runs[0].text
                 if self.detailedMetadataSnippets
                 else None
             ),
         )
+        return final_result
 
     @staticmethod
     def get_past_date(str_time_ago: str):

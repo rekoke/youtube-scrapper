@@ -98,5 +98,5 @@ class YoutubeScraping:
         return scrapped_videos
 
 
-sc = YoutubeScraping().run_interaction("israel", "es", 20)
+sc = YoutubeScraping().run_interaction("israel", "es", 1)
 pp.pprint(sc)
